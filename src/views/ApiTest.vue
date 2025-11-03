@@ -48,16 +48,32 @@
     </div>
 
     <div class="test-section">
-      <h3>用户登录测试</h3>
-      <div class="form-group">
-        <input v-model="loginUser.email" placeholder="登录邮箱" type="email" />
-        <input v-model="loginUser.password" placeholder="登录密码" type="password" />
-      </div>
-      <button @click="testLogin" :disabled="loading.login" class="btn">
-        {{ loading.login ? '登录中...' : '测试登录' }}
+      <h3>环保活动列表</h3>
+      <button @click="testActivities" :disabled="loading.activities" class="btn">
+        {{ loading.activities ? '加载中...' : '获取活动列表' }}
       </button>
-      <div v-if="results.login" class="result">
-        <pre>{{ JSON.stringify(results.login, null, 2) }}</pre>
+      <div v-if="results.activities" class="result">
+        <pre>{{ JSON.stringify(results.activities, null, 2) }}</pre>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <h3>自定义API调用</h3>
+      <div class="form-group">
+        <select v-model="customRequest.method">
+          <option value="GET">GET</option>
+          <option value="POST">POST</option>
+          <option value="PUT">PUT</option>
+          <option value="DELETE">DELETE</option>
+        </select>
+        <input v-model="customRequest.endpoint" placeholder="API端点 (例如: /users)" />
+        <textarea v-model="customRequest.body" placeholder="请求体 (JSON格式)" v-if="customRequest.method !== 'GET'"></textarea>
+      </div>
+      <button @click="makeCustomRequest" :disabled="loading.custom" class="btn">
+        {{ loading.custom ? '请求中...' : '发送请求' }}
+      </button>
+      <div v-if="results.custom" class="result">
+        <pre>{{ JSON.stringify(results.custom, null, 2) }}</pre>
       </div>
     </div>
 
@@ -79,7 +95,9 @@ const loading = reactive({
   achievements: false,
   footprint: false,
   register: false,
-  login: false
+  login: false,
+  activities: false,
+  custom: false
 })
 
 const results = reactive({
@@ -87,7 +105,9 @@ const results = reactive({
   achievements: null,
   footprint: null,
   register: null,
-  login: null
+  login: null,
+  activities: null,
+  custom: null
 })
 
 const testUser = reactive({
@@ -99,6 +119,12 @@ const testUser = reactive({
 const loginUser = reactive({
   email: 'test123@example.com',
   password: 'Test123456'
+})
+
+const customRequest = reactive({
+  method: 'GET',
+  endpoint: '',
+  body: '{}'
 })
 
 const error = ref('')
@@ -182,6 +208,64 @@ async function testLogin() {
     error.value = '登录测试失败: ' + err.message
   } finally {
     loading.login = false
+  }
+}
+
+async function testActivities() {
+  loading.activities = true
+  error.value = ''
+  try {
+    const response = await api.get('/activities')
+    results.activities = response.data
+  } catch (err) {
+    error.value = '获取活动列表失败: ' + err.message
+  } finally {
+    loading.activities = false
+  }
+}
+
+async function makeCustomRequest() {
+  if (!customRequest.endpoint) {
+    error.value = '请输入API端点'
+    return
+  }
+  
+  loading.custom = true
+  error.value = ''
+  
+  try {
+    let response
+    const endpoint = customRequest.endpoint.startsWith('/') ? customRequest.endpoint : '/' + customRequest.endpoint
+    
+    switch (customRequest.method) {
+      case 'GET':
+        response = await api.get(endpoint)
+        break
+      case 'POST':
+        response = await api.post(endpoint, JSON.parse(customRequest.body))
+        break
+      case 'PUT':
+        response = await api.put(endpoint, JSON.parse(customRequest.body))
+        break
+      case 'DELETE':
+        response = await api.delete(endpoint)
+        break
+    }
+    
+    results.custom = {
+      status: response.status,
+      statusText: response.statusText,
+      data: response.data
+    }
+  } catch (err) {
+    error.value = '请求失败: ' + (err.response?.data?.message || err.message)
+    results.custom = err.response ? {
+      status: err.response.status,
+      statusText: err.response.statusText,
+      error: err.response.data
+    } : null
+  } finally {
+    loading.custom = false
   }
 }
 </script>

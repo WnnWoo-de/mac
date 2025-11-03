@@ -23,29 +23,21 @@
         <router-link to="/community" class="nav-link">社区</router-link>
         <router-link to="/ai-recognition" class="nav-link">AI 识别</router-link>
         <router-link to="/upcycling" class="nav-link">旧物新生</router-link>
-
         <router-link to="/achievements" class="nav-link">成就</router-link>
       </div>
+      
       <div class="user-actions">
         <!-- 主题切换（一直显示） -->
         <ThemeToggle mode="simple" />
-
-        <!-- 登录后显示用户名与登出 -->
+    
+        <!-- 登录后显示用户邮箱与退出 -->
         <template v-if="authStore.isLoggedIn">
-          <router-link to="/profile" class="user-info" aria-label="个人中心">
-            <span class="user-icon">👤</span>
-            <span class="user-name">{{ authStore.username || authStore.user?.username || '用户' }}</span>
+          <router-link to="/profile" class="user-info">
+            <span class="user-name">{{ authStore.user?.username || authStore.email }}</span>
           </router-link>
-          <button @click="handleLogout" class="icon-btn logout-btn" title="退出" aria-label="退出">
-            <svg class="logout-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M10 17l5-5-5-5" />
-              <path d="M15 12H3" />
-              <path d="M21 19V5a2 2 0 0 0-2-2h-6" />
-            </svg>
-            <span class="logout-text">退出</span>
-          </button>
+          <button @click="handleLogout" class="btn btn-outline glow">退出</button>
         </template>
-
+    
         <!-- 未登录显示登录/注册 -->
         <template v-else>
           <router-link to="/login" class="btn btn-outline glow">登录</router-link>
@@ -385,11 +377,7 @@ const handleLogout = () => {
     color: #ffffff;
   }
 
-  .logout-icon { opacity: 0.9; }
-  .logout-text { display: inline-block; }
-
   @media (max-width: 640px) {
-    .logout-text { display: none; }
     .user-name { display: none; }
   }
 

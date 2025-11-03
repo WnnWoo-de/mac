@@ -1,7 +1,5 @@
 import express from 'express';
 import { authenticateToken } from '../middleware/auth.js';
-import { Logger } from '../middleware/errorHandler.js';
-import { testConnection } from '../config/database.js';
 
 const router = express.Router();
 

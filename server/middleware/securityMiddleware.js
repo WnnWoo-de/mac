@@ -28,16 +28,21 @@ export const configureSecurityMiddleware = (app) => {
     next();
   });
 
-  // 设置随机的CSRF令牌
+  // 设置 CSRF 令牌（仅在缺失时设置，避免每次 GET 都刷新导致不一致）
   app.use((req, res, next) => {
     if (req.method === 'GET') {
-      const csrfToken = randomBytes(16).toString('hex');
-      res.cookie('XSRF-TOKEN', csrfToken, {
-        httpOnly: false,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict'
-      });
-      res.locals.csrfToken = csrfToken;
+      const existingToken = req.cookies?.['XSRF-TOKEN'];
+      if (!existingToken) {
+        const csrfToken = randomBytes(16).toString('hex');
+        res.cookie('XSRF-TOKEN', csrfToken, {
+          httpOnly: false,
+          secure: process.env.NODE_ENV === 'production',
+          // 开发环境更宽松，生产环境使用 strict
+          sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+          path: '/'
+        });
+        res.locals.csrfToken = csrfToken;
+      }
     }
     next();
   });

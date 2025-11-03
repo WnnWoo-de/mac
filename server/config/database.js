@@ -37,7 +37,7 @@ const connectDB = async () => {
     sequelize = new Sequelize(
       process.env.DB_NAME || 'greenn_db',
       process.env.DB_USER || 'root',
-      process.env.DB_PASSWORD || '',
+      process.env.DB_PASSWORD || 'Wnn0705520@',
       {
         host: process.env.DB_HOST || 'localhost',
         port: process.env.DB_PORT || 3306,
@@ -100,24 +100,6 @@ const connectDB = async () => {
 };
 
 // 导出连接函数和Sequelize实例
-export { sequelize };
-export default connectDB;
-  } catch (error) {
-    console.error('❌ Database connection error:', error.message);
-    
-    // 在开发环境下，如果连接失败则继续运行（使用模拟数据）
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔧 Development mode: Continuing without database connection');
-      console.log('📝 Note: Database operations will use mock data');
-      return null;
-    }
-    
-    // 生产环境下连接失败则退出
-    process.exit(1);
-  }
-};
-
-// 获取Sequelize实例
 export const getSequelize = () => sequelize;
-
+export { sequelize };
 export default connectDB;

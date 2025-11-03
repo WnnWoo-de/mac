@@ -1,5 +1,4 @@
 import { Op } from 'sequelize';
-import { Logger } from '../middleware/errorHandler.js';
 
 /**
  * 查询优化器类
@@ -105,6 +104,7 @@ export class QueryOptimizer {
     if (options.useCache !== false) {
       const cached = this.getCache(cacheKey);
       if (cached) {
+        console.debug(`Cache hit for ${model.name}.${queryType}`);
         this.recordQueryStats(model.name, queryType, Date.now() - startTime, true);
         return cached;
       }
@@ -113,24 +113,27 @@ export class QueryOptimizer {
     try {
       let result;
       
+      // 优化查询选项
+      const optimizedOptions = this.optimizeQueryOptions ? this.optimizeQueryOptions(options) : options;
+      
       switch (queryType) {
         case 'findAll':
-          result = await this.optimizedFindAll(model, query, options);
+          result = await this.optimizedFindAll(model, query, optimizedOptions);
           break;
         case 'findOne':
-          result = await this.optimizedFindOne(model, query, options);
+          result = await this.optimizedFindOne(model, query, optimizedOptions);
           break;
         case 'findByPk':
-          result = await this.optimizedFindByPk(model, query.id, options);
+          result = await this.optimizedFindByPk(model, query.id, optimizedOptions);
           break;
         case 'count':
-          result = await this.optimizedCount(model, query, options);
+          result = await this.optimizedCount(model, query, optimizedOptions);
           break;
         case 'findAndCountAll':
-          result = await this.optimizedFindAndCountAll(model, query, options);
+          result = await this.optimizedFindAndCountAll(model, query, optimizedOptions);
           break;
         default:
-          throw new Error(`Unsupported query type: ${queryType}`);
+          throw new Error(`不支持的查询类型: ${queryType}`);
       }
 
       // 缓存结果
@@ -141,6 +144,7 @@ export class QueryOptimizer {
       this.recordQueryStats(model.name, queryType, Date.now() - startTime, false);
       return result;
     } catch (error) {
+      console.error(`查询优化器错误: ${error.message}`, error);
       this.recordQueryStats(model.name, queryType, Date.now() - startTime, false, error);
       throw error;
     }

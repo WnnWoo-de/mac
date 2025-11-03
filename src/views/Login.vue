@@ -4,8 +4,8 @@
     <form class="form" @submit.prevent="onSubmit" v-reveal>
       <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
       <label>
-        用户名
-        <input v-model="username" type="text" placeholder="请输入用户名" required :disabled="isLoading" />
+        邮箱
+        <input v-model="email" type="email" placeholder="请输入邮箱" required :disabled="isLoading" />
       </label>
       <label>
         密码
@@ -28,20 +28,20 @@ const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
 
-const username = ref('')
+const email = ref('')
 const password = ref('')
 const errorMessage = ref('')
 const isLoading = ref(false)
 
 async function onSubmit() {
-  if (!username.value || !password.value) return
+  if (!email.value || !password.value) return
   
   isLoading.value = true
   errorMessage.value = ''
   
   try {
     const result = await auth.login({
-      username: username.value,
+      email: email.value,
       password: password.value
     })
     
